@@ -216,7 +216,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        arg = "cuda:0"
+        # Select the first device, not cuda:0
+        arg = f"cuda:{devices[0]}"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
