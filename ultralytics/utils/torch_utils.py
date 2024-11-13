@@ -216,8 +216,9 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        # Select the first device, not cuda:0
+        # Respect the first specified GPU in the list
         arg = f"cuda:{devices[0]}"
+    
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
@@ -730,3 +731,48 @@ class EarlyStopping:
                 f"i.e. `patience=300` or use `patience=0` to disable EarlyStopping."
             )
         return stop
+
+
+class FXModel(nn.Module):
+    """
+    A custom model class for torch.fx compatibility.
+
+    This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph manipulation.
+    It copies attributes from an existing model and explicitly sets the model attribute to ensure proper copying.
+
+    Args:
+        model (torch.nn.Module): The original model to wrap for torch.fx compatibility.
+    """
+
+    def __init__(self, model):
+        """
+        Initialize the FXModel.
+
+        Args:
+            model (torch.nn.Module): The original model to wrap for torch.fx compatibility.
+        """
+        super().__init__()
+        copy_attr(self, model)
+        # Explicitly set `model` since `copy_attr` somehow does not copy it.
+        self.model = model.model
+
+    def forward(self, x):
+        """
+        Forward pass through the model.
+
+        This method performs the forward pass through the model, handling the dependencies between layers and saving intermediate outputs.
+
+        Args:
+            x (torch.Tensor): The input tensor to the model.
+
+        Returns:
+            (torch.Tensor): The output tensor from the model.
+        """
+        y = []  # outputs
+        for m in self.model:
+            if m.f != -1:  # if not from previous layer
+                # from earlier layers
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+            x = m(x)  # run
+            y.append(x)  # save output
+        return x
