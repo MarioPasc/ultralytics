@@ -600,7 +600,7 @@ class ModelEMA:
         )  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
             p.requires_grad_(False)
-        self.enabled = True
+        self.enabled = True  # EMA enabled/disabled
 
     def update(self, model):
         """Update EMA parameters."""
