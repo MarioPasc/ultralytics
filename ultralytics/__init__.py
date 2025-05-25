@@ -1,6 +1,6 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-__version__ = "8.3.29"
+__version__ = "8.3.91"
 
 import os
 
@@ -12,6 +12,7 @@ from ultralytics.models import NAS, RTDETR, SAM, YOLO, FastSAM, YOLOWorld
 from ultralytics.utils import ASSETS, SETTINGS
 from ultralytics.utils.checks import check_yolo as checks
 from ultralytics.utils.downloads import download
+import ultralytics.nn as nn 
 
 settings = SETTINGS
 __all__ = (
@@ -26,4 +27,5 @@ __all__ = (
     "checks",
     "download",
     "settings",
+    "nn"
 )
